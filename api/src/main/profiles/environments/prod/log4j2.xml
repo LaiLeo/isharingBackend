@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<Configuration status="ERROR">
+	<Appenders>
+
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %c{1} - %msg%n" />
+		</Console>
+		<RollingFile name="RollingFile" fileName="./logs/iShareingApi.log"
+					 filePattern="./logs/iShareingApi-%d{yyyy-MM-dd}.%i.log.gz"> <!-- roll over every HOUR -->
+			<PatternLayout>
+				<Pattern>[%d{yyyy/MM/dd HH:mm:ss:SSS}][%p] %m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="10 MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="1" />
+		</RollingFile>
+
+		<Async name="AsyncRollingFile">
+			<AppenderRef ref="RollingFile" />
+		</Async>
+	</Appenders>
+
+	<Loggers>
+		<Root level="info">
+			<AppenderRef ref="Console" level="error" />
+			<AppenderRef ref="AsyncRollingFile" level="info" />
+		</Root>
+	</Loggers>
+</Configuration>

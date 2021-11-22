@@ -1,0 +1,37 @@
+version: '3.7'
+services:
+  base-redis:
+    image: redis:6.2.5
+    networks:
+      - isharing_network
+    container_name: isharing-redis
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - 8210:6379
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${DATA_PATH}/docker/base-redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ${DATA_PATH}/docker/base-redis/data:/data
+    restart: always
+
+  nginx:
+    image: nginx:1.18.0
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+        - ${DATA_PATH}/docker/base-nginx/logs:/var/log/nginx
+        - ${DATA_PATH}/docker/base-nginx/conf.d:/etc/nginx/conf.d
+#        - ${DATA_PATH}/docker/base-nginx/ssl:/etc/nginx/ssl
+        - ${DATA_PATH}/docker/base-nginx/nginx.conf:/etc/nginx/nginx.conf
+        - ${DATA_PATH}/docker/base-nginx/nginx:/etc/logrotate.d/nginx
+        - ${DATA_PATH}/docker/base-nginx/www:/var/www/html
+    container_name: isharing-nginx
+    networks:
+      - isharing_network
+    restart: always
+      
+networks:
+  isharing_network:
+    external:
+      name: isharing_network

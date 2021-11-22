@@ -1,0 +1,165 @@
+# These are the default stages.
+# You don't need to explicitly define them.
+# But you could define any stages you want.
+stages:
+  - build-info
+  - build-init
+  - unit-test
+  - harbor-login
+  - docker-build
+  - test
+  - docker-push
+  - docker-pull
+  - script-install
+  - deploy
+  - cleanup
+
+variables:
+  ISHARING_APP_API_DOCKER_NAME: "isharing/api"
+
+  DOCKER_IMAGES: $ISHARING_APP_API_DOCKER_NAME
+
+  UNTESTED_TAG: "untested"
+  DEV_TAG: "dev"
+  LATEST_TAG: "latest"
+
+build-init:
+  stage: build-init
+  script:
+    - echo 'Init network setting...'
+    - ./deploy/scripts/init-isharing-network.sh
+
+    - echo 'Create gradle cache folder'
+    - >
+      if [ ! -d  "$HOME"/.gradle ]; then
+        echo "$HOME"/.gradle not found
+        mkdir -p "$HOME"/.gradle
+      fi
+  only:
+    - dev
+    - /^release.*$/
+  except:
+    - schedules
+  tags:
+    - ISHARING-Dev
+
+dev-harbor-login:
+  stage: harbor-login
+  script:
+    - echo "Before script section, we need to login to internal docker registry using project robot account and download python image first."
+    - echo 'Harbor IP:' $HARBOR_IP
+    - docker login $HARBOR_IP -u 'robot$'$DOCKER_USERNAME -p $DOCKER_PASSWORD
+  tags:
+    - ISHARING-Dev
+
+api-docker-build:
+  stage: docker-build
+  script:
+    - echo 'Start to build api module'
+    - >
+        docker run --rm -u $(id -u):$(id -g) -v "$HOME"/.gradle:/home/gradle/.gradle
+        -v "$CI_PROJECT_DIR"/api:/home/gradle/project/api -w /home/gradle/project/api gradle:latest
+        gradle -Dhttps.proxyHost=$PHOST -Dhttps.proxyPort=$PPort --gradle-user-home=/home/gradle/.gradle clean build -PspringProfiles=prod -x test
+
+    - echo 'Start to build api docker image'
+    - docker build -f $CI_PROJECT_DIR/api/docker/Dockerfile -t $ISHARING_APP_API_DOCKER_NAME:$UNTESTED_TAG $CI_PROJECT_DIR/api
+  only:
+    refs:
+      - dev
+      - schedules
+      - /^release.*$/
+    changes:
+       - api/**/*
+  tags:
+    - ISHARING-Dev
+
+docker-push:
+  stage: docker-push
+  script:
+    - DOCKER_TAG=$(echo $CI_COMMIT_REF_NAME | sed 's/release_//g')
+
+    - >
+      for DOCKER_IMAGE in $DOCKER_IMAGES; do
+        echo "Re-tag docker images, $DOCKER_IMAGE:$UNTESTED_TAG -> $HARBOR_IP/$DOCKER_IMAGE:$DOCKER_TAG"
+        docker tag "$DOCKER_IMAGE:$UNTESTED_TAG" "$HARBOR_IP/$DOCKER_IMAGE:$DOCKER_TAG"
+
+        echo "Push docker images to harbor, image:$HARBOR_IP/$DOCKER_IMAGE:$DOCKER_TAG"
+        docker push "$HARBOR_IP/$DOCKER_IMAGE:$DOCKER_TAG"
+      done
+  dependencies:
+    - dev-harbor-login
+  only:
+    - dev
+    - schedules
+    - /^release.*$/
+  tags:
+    - ISHARING-Dev
+
+dev-script-install:
+  stage: script-install
+  script:
+    - echo 'Init insatll dir'
+    - >
+      if [ ! -d  "$HOME"/isharing ]; then
+        echo "$HOME"/isharing not found
+        mkdir -p "$HOME"/isharing
+      fi
+
+    - cp -rfv "$CI_PROJECT_DIR"/deploy/*.yml $HOME/isharing
+    - cp -rfv "$CI_PROJECT_DIR"/deploy/scripts/*.sh $HOME/isharing
+    - cp -rfv "$CI_PROJECT_DIR"/deploy/env_dev $HOME/isharing
+
+    - echo 'Copy Nginx config'
+    - >
+      if [ ! -d  "$HOME"/isharing/nginx ]; then
+        echo "$HOME"/isharing/nginx not found
+        mkdir -p "$HOME"/isharing/nginx
+      fi
+    - cp -rfv "$CI_PROJECT_DIR"/deploy/docker/base-nginx/* $HOME/isharing/nginx/
+
+    - echo 'Copy Redis config'
+    - >
+      if [ ! -d  "$HOME"/isharing/redis ]; then
+        echo "$HOME"/isharing/redis not found
+        mkdir -p "$HOME"/isharing/redis
+      fi
+    - cp -rfv "$CI_PROJECT_DIR"/deploy/docker/base-redis/* $HOME/isharing/redis/
+  tags:
+    - ISHARING-Dev
+
+dev-deploy-api:
+  stage: deploy
+  script:
+    - echo 'Copy api config'
+    - >
+      if [ ! -d  "$HOME"/isharing/api ]; then
+        echo "$HOME"/isharing/api not found
+        mkdir -p "$HOME"/isharing/api
+      fi
+
+    - cp -rfv "$CI_PROJECT_DIR"/deploy/docker/isharing-api/application-prod.properties $HOME/isharing/api/
+#    - cp -rfv "$CI_PROJECT_DIR"/deploy/isharing-api/* $HOME/isharing/api/
+    - echo 'Deploy api to dev'
+    - docker-compose --env-file "$HOME"/isharing/env_dev -f "$HOME"/isharing/docker-compose-core.yml pull api
+    - docker-compose --env-file "$HOME"/isharing/env_dev -f "$HOME"/isharing/docker-compose-core.yml up -d --force-recreate api
+  only:
+    refs:
+      - dev
+      - schedules
+    changes:
+      - api/**/*
+  tags:
+    - ISHARING-Dev
+
+dev_clean:
+  stage: cleanup
+  script:
+    - echo "Clean intermediate images ..."
+    - docker image prune --force
+  only:
+    - dev
+    - schedules
+    - /^release.*$/
+  when: always
+  tags:
+    - ISHARING-Dev

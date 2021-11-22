@@ -1,0 +1,24 @@
+version: '3.7'
+services:
+  mysql:
+    build: docker/base-mysql
+    container_name: isharing-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=Foxconn**123PassWord
+    volumes:
+      - ${DATA_PATH}/docker/base-mysql:/var/lib/mysql
+      - ${DATA_PATH}/docker/base-mysql:/tmp
+    ports:
+      - 3366:3306
+    restart: always
+    networks:
+      - isharing_network
+
+volumes:
+  mysql:
+    driver: local
+
+networks:
+  isharing_network:
+    external:
+      name: isharing_network

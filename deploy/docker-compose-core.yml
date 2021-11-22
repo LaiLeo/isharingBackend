@@ -1,0 +1,33 @@
+version: '3.7'
+services:
+  api:
+    image: cloudregistry.fihtdc.com/isharing/api:${TAG:-latest}
+    networks:
+      - isharing_network
+    container_name: isharing-api
+    ports:
+      - 8100:8080
+    environment:
+      JAVA_OPTS: "-XX:+UseG1GC -Xms128m -Xmx256m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Duser.timezone=Asia/Taipei -Djava.security.egd=file:/dev/./urandom"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${DATA_PATH}/api/application-prod.properties:/app/application-prod.properties:ro
+      - ${DATA_PATH}/api/logs:/app/logs
+#      - ${DATA_PATH}/service/base-file-server/core-api:/app/temp
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          memory: 1000M
+
+networks:
+  isharing_network:
+    external:
+      name: isharing_network

@@ -1,0 +1,3 @@
+TAG=dev
+WORKER_DIR=/home/gitlab-runner/isharing
+DATA_PATH=/home/gitlab-runner/isharing
