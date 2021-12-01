@@ -12,8 +12,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class AuthenticationUtils {
     public static final int getUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication.getPrincipal() instanceof IeqUser) {
-            return ((IeqUser) authentication.getPrincipal()).getUserId();
+        if (authentication.getPrincipal() instanceof AuthUser) {
+            return ((AuthUser) authentication.getPrincipal()).getUserId();
         }
 
         throw new TokenInValidException("User is null");
@@ -49,8 +49,8 @@ public class AuthenticationUtils {
 
     public static final boolean isSu() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication.getPrincipal() instanceof IeqUser) {
-            return ((IeqUser) authentication.getPrincipal()).isSu();
+        if (authentication.getPrincipal() instanceof AuthUser) {
+            return ((AuthUser) authentication.getPrincipal()).isSu();
         }
 
         throw new TokenInValidException("Su flag is null");

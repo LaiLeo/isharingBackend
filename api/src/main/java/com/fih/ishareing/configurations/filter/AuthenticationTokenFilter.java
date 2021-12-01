@@ -39,7 +39,7 @@ public class AuthenticationTokenFilter extends GenericFilterBean {
 
         // handle x-access-token
         Optional<String> token = NoBearerAuthorizationParser.resolveToken((HttpServletRequest) request);
-        if (token.isPresent()) {
+        if (token.isPresent() && !token.get().trim().equalsIgnoreCase("null")) {
             Authentication auth = StringUtils.isNotBlank(token.get()) ? tokenService.readAuthentication(token.get())
                     : null;
             SecurityContextHolder.getContext().setAuthentication(auth);

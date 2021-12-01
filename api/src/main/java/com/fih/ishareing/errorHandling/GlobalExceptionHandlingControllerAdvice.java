@@ -7,6 +7,7 @@ import com.fih.ishareing.errorHandling.base.ResourceNotFoundException;
 import com.fih.ishareing.errorHandling.base.ServiceUnavailableException;
 import com.fih.ishareing.errorHandling.exceptions.*;
 import com.fih.ishareing.utils.ErrorUtil;
+import org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanCreationException;
@@ -14,12 +15,16 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.messaging.handler.annotation.support.MethodArgumentTypeMismatchException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.server.MethodNotAllowedException;
 
 
 /**
@@ -32,7 +37,27 @@ public class GlobalExceptionHandlingControllerAdvice {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(GlobalExceptionHandlingControllerAdvice.class);
-	
+	/**
+	 * Http Code : 200
+	 * */
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	@ExceptionHandler({
+			InValidRefreshTokenException.class,
+			InvalidUserPasswordException.class,
+			UserNotFoundException.class,
+			BannerNotFoundException.class,
+			ImageTypeInValidException.class,
+			ImageScaleToConfigInValidException.class,
+			FileImageTypeInValidException.class,
+			FileSizeLimitExceededException.class,
+			ImageSizeInValidException.class,
+			UserLicenseImageNotFoundException.class
+	})
+	ResponseEntity<ExceptionResponseVO> handleOK(Exception e) {
+		return new ResponseEntity<ExceptionResponseVO>(processErrorMessage(e), HttpStatus.OK);
+	}
+
 	/**
 	 * Http Code : 400
 	 * */
@@ -52,13 +77,17 @@ public class GlobalExceptionHandlingControllerAdvice {
 						AccessTaskInValidException.class,
 						EmailAddressFailedException.class,
 						TooManyResourcesException.class,
-						InValidRefreshTokenException.class,
 						BlackListException.class,
-						InvalidUserPasswordException.class})
+						MissingPathVariableException.class,
+						MethodArgumentTypeMismatchException.class,
+						NumberFormatException.class})
 	ResponseEntity<ExceptionResponseVO> handleBadRequest(Exception e) {
 		if (e instanceof MissingServletRequestParameterException || 
 			e instanceof UnsatisfiedServletRequestParameterException ||
-		 	e instanceof IllegalArgumentException) {
+		 	e instanceof IllegalArgumentException ||
+			e instanceof MissingPathVariableException ||
+		    e instanceof MethodArgumentTypeMismatchException ||
+			e instanceof NumberFormatException) {
 			e = new ParameterException(e.getMessage());
 		}
 		return new ResponseEntity<ExceptionResponseVO>(processErrorMessage(e), HttpStatus.BAD_REQUEST);
@@ -68,10 +97,19 @@ public class GlobalExceptionHandlingControllerAdvice {
 	 * Http Code : 404
 	 * */
 	@ResponseStatus(HttpStatus.NOT_FOUND)
-	@ExceptionHandler({	ResourceNotFoundException.class,
-						UserNotFoundException.class})
+	@ExceptionHandler({	ResourceNotFoundException.class})
 	@ResponseBody
 	ExceptionResponseVO handleNotFound(Exception e) {
+		return processErrorMessage(e);
+	}
+
+	/**
+	 * Http Code : 405
+	 * */
+	@ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+	@ExceptionHandler({	HttpRequestMethodNotSupportedException.class, MethodNotAllowedException.class})
+	@ResponseBody
+	ExceptionResponseVO handleMethodNotAllowed(Exception e) {
 		return processErrorMessage(e);
 	}
 	
@@ -119,13 +157,14 @@ public class GlobalExceptionHandlingControllerAdvice {
 	 * */
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ExceptionHandler({	Exception.class,
-					   	InternalErrorException.class})
+					   	InternalErrorException.class,
+						NullPointerException.class})
 	@ResponseBody
 	ResponseEntity<ExceptionResponseVO> handleInteralServerError(Exception e) {
 		Throwable cause = e.getCause();
 		
 		if (e instanceof InvalidFormatException || cause instanceof InvalidFormatException
-		 || e instanceof IllegalArgumentException) {
+		 || e instanceof IllegalArgumentException || cause instanceof NumberFormatException) {
 			return handleBadRequest(e);
 		}
 		return new ResponseEntity<ExceptionResponseVO>(processErrorMessage(e), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -147,7 +186,7 @@ public class GlobalExceptionHandlingControllerAdvice {
 		if (e instanceof BaseException){
 			vo.setError(((BaseException)e).getError());
 			vo.setDescription(((BaseException)e).getDescription());
-		} else if (e.getCause() instanceof InvalidFormatException) {
+		} else if (e.getCause() instanceof InvalidFormatException || e.getCause() instanceof NumberFormatException) {
 			vo.setError(ParameterException.error);
 			vo.setDescription(e.getCause().getMessage());
 		} else {

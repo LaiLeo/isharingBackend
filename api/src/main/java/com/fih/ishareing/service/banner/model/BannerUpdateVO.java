@@ -1,8 +1,6 @@
 package com.fih.ishareing.service.banner.model;
 
-import com.fih.ishareing.service.user.model.UserAddVO;
-
-public class BannerUpdateVO extends UserAddVO {
+public class BannerUpdateVO extends BannerAddVO {
     Integer id;
 
     public Integer getId() {

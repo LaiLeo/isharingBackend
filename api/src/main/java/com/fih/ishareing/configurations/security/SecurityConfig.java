@@ -56,9 +56,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         // @formatter:off
         http.cors();
+        // enable xssProtection
+        http.headers().xssProtection();
 
         http.csrf().disable().exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint);
-
         // disable page caching
         http.headers().cacheControl();
 
@@ -67,8 +68,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(new AuthenticationTokenFilter(tokenService), UsernamePasswordAuthenticationFilter.class);
 
         http.authorizeRequests()
-                .antMatchers(HttpMethod.POST, "/api/v3/auth/token", "/api/v3/reset/password", "/api/v3/validation/email", "/api/v1/auth/token").permitAll()
-                .antMatchers(HttpMethod.PUT, "/api/v3/auth/token", "/api/v3/reset/password", "/api/v3/validation/email").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/v1/banners","/api/v1/events","/api/v1/events/volunteer","/api/v1/events/enterprise","/api/v1/events/supply","/api/v1/npos","/api/v1/npos/promote","/api/v1/donationNpos","/api/v1/npos/menu","/api/v1/auth/sign","/api/v1/appConfigs","/api/v1/events/menu").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/v1/auth/token", "/api/v1/reset/password", "/api/v1/auth/fubon", "/api/v1/auth/twm", "/api/v1/users").permitAll()
+                .antMatchers(HttpMethod.PUT, "/api/v1/auth/token", "/api/v1/reset/password").permitAll()
                 .antMatchers("/api/**").authenticated()
                 .anyRequest().authenticated();
         // @formatter:on

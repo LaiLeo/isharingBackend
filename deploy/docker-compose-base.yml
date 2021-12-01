@@ -20,12 +20,13 @@ services:
       - 80:80
       - 443:443
     volumes:
-        - ${DATA_PATH}/docker/base-nginx/logs:/var/log/nginx
-        - ${DATA_PATH}/docker/base-nginx/conf.d:/etc/nginx/conf.d
-#        - ${DATA_PATH}/docker/base-nginx/ssl:/etc/nginx/ssl
-        - ${DATA_PATH}/docker/base-nginx/nginx.conf:/etc/nginx/nginx.conf
-        - ${DATA_PATH}/docker/base-nginx/nginx:/etc/logrotate.d/nginx
-        - ${DATA_PATH}/docker/base-nginx/www:/var/www/html
+        - ${DATA_PATH}/nginx/logs:/var/log/nginx
+        - ${DATA_PATH}/nginx/conf.d:/etc/nginx/conf.d
+#        - ${DATA_PATH}/nginx/ssl:/etc/nginx/ssl
+        - ${DATA_PATH}/nginx/nginx.conf:/etc/nginx/nginx.conf
+        - ${DATA_PATH}/nginx/nginx:/etc/logrotate.d/nginx
+        - ${DATA_PATH}/nginx/www:/var/www/html
+        - ${DATA_PATH}/nginx/resource:/var/www/resources
     container_name: isharing-nginx
     networks:
       - isharing_network

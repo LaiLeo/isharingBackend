@@ -34,7 +34,7 @@ import org.hibernate.annotations.NotFoundAction;
 public class AuthToken implements Serializable {
 
 	@Id
-	@Column(name="key")
+	@Column(name="\"key\"")
 	private String key;
 	
 	@Column(name="user_id")

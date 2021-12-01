@@ -1,9 +1,11 @@
 package com.fih.ishareing.utils.date;
 
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.util.Calendar;
 import java.util.Date;
 
 public class DateUtils {
@@ -55,23 +57,49 @@ public class DateUtils {
 	public static Date toDate(String string) {
 		DateFormat formatter = null;
 		try {
-			formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+			formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 			return formatter.parse(string);
-		} catch (ParseException e) {
-			formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		} catch (ParseException e3) {
 			try {
+				formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 				return formatter.parse(string);
-			} catch (ParseException e1) {
+			} catch (ParseException e4) {
 				try {
-					formatter = new SimpleDateFormat("yyyy-MM-dd");
+					formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 					return formatter.parse(string);
-				} catch (ParseException e2) {
-					throw new IllegalArgumentException(
-							"DateTime format must match 'yyyy-MM-dd HH:mm:ss.SSS' or 'yyyy-MM-dd HH:mm:ss' or 'yyyy-MM-dd'.");
-				}
+				} catch (ParseException e5) {
+					try {
+						formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
+						return formatter.parse(string);
+					} catch (ParseException e6) {
+						try {
+							formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+							return formatter.parse(string);
+						} catch (ParseException e) {
+							try {
+								formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+								return formatter.parse(string);
+							} catch (ParseException e1) {
+								try {
+									formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+									return formatter.parse(string);
+								} catch (ParseException e7) {
+									try {
+										formatter = new SimpleDateFormat("yyyy-MM-dd");
+										return formatter.parse(string);
+									} catch (ParseException e2) {
+										return null;
+									}
+								}
 
+
+							}
+						}
+					}
+				}
 			}
 		}
+
 	}
 
 	public static Date toDate(String dateString, String format) {
@@ -87,6 +115,7 @@ public class DateUtils {
 
 	public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 	public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
+	public static final String DEFAULT_DATE_REGISTER_FORMAT = "yyyy-MM-dd HH:mm";
 
 	public static boolean isVaidDate(String value) {
 		return isValidFormat(DEFAULT_DATE_TIME_FORMAT, value) || isValidFormat(DEFAULT_DATE_FORMAT, value);
@@ -104,5 +133,18 @@ public class DateUtils {
 			// do nothing...
 		}
 		return date != null;
+	}
+
+	public static Timestamp GetNowTimestamp() {
+		return new Timestamp(Calendar.getInstance().getTimeInMillis());
+	}
+
+	public static String getRegisterDateString(Long now) {
+		Date date = new Date();
+		date.setTime(now);
+		String registerDate = new SimpleDateFormat(DEFAULT_DATE_REGISTER_FORMAT).format(date);
+
+		return registerDate;
+
 	}
 }

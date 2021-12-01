@@ -48,9 +48,11 @@ public class LoggerInterceptor extends HandlerInterceptorAdapter {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
             throws Exception {
-        log(request, response);
-        clearThreadContext();
-        super.afterCompletion(request, response, handler, ex);
+        if (!request.getMethod().equalsIgnoreCase("GET")) {
+            log(request, response);
+            clearThreadContext();
+            super.afterCompletion(request, response, handler, ex);
+        }
     }
 
     private void log(HttpServletRequest request, HttpServletResponse response) {
@@ -185,10 +187,14 @@ public class LoggerInterceptor extends HandlerInterceptorAdapter {
 
         String url = request.getRequestURI();
         if (StringUtils.isNotBlank(url)) {
-            if (StringUtils.isBlank(request.getQueryString()))
+            url = url.replaceAll("\r", "%0D").replaceAll("\n","%0A");
+            if (StringUtils.isBlank(request.getQueryString())) {
                 parameters.put("Url", url);
-            else
-                parameters.put("Url", String.format("%s?%s", url, request.getQueryString()));
+            } else {
+                String queryString = request.getQueryString();
+                queryString = queryString.replaceAll("\r", "%0D").replaceAll("\n","%0A");
+                parameters.put("Url", String.format("%s?%s", url, queryString));
+            }
         }
 
         return parameters;

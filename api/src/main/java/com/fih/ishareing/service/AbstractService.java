@@ -15,7 +15,7 @@ import com.fih.ishareing.repository.pocservice.entity.interfaces.BaseEntity;
 import com.fih.ishareing.repository.pocservice.entity.interfaces.TimestampLogEntity;
 import com.fih.ishareing.repository.pocservice.entity.interfaces.UserLogEntity;
 import com.fih.ishareing.service.auth.model.UserAuthenticationVO;
-import com.fih.ishareing.utils.FsnApiUtils;
+import com.fih.ishareing.utils.ThirdPartyApiUtils;
 import com.fih.ishareing.utils.Hasher;
 import com.fih.ishareing.validators.CodeValidator;
 import com.fih.ishareing.validators.IntegerAndCommaValidator;
@@ -23,6 +23,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -47,11 +48,17 @@ public abstract class AbstractService extends AbstractAuthenticationService {
     protected Environment env;
 
     @Autowired
-    protected FsnApiUtils fsnApiUtils;
+    protected ThirdPartyApiUtils thirdPartyApiUtils;
 
-    protected String urlCoreApiUrl="xxxxxx";
     @Autowired
     protected Hasher hasher;
+
+    @Value("${server.url}")
+    protected String strHTTPServerHost;
+
+    @Value("${serverHost}")
+    protected String serverHost;
+
     /**
      * 新增資料時,自動填入CreatedTime, CreatedUserCode, ModifiedTime, ModifiedUserCode
      *

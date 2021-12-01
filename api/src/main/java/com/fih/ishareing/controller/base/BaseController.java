@@ -10,17 +10,16 @@ import com.fih.ishareing.service.auth.AuthenticationUtils;
 import com.fih.ishareing.utils.SpecificationUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 
 import javax.servlet.http.HttpServletRequest;
+import java.security.InvalidParameterException;
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -35,6 +34,9 @@ public abstract class BaseController {
 
     @Autowired
     protected SpecificationUtil specUtil;
+
+    @Value("${server.url}")
+    protected String strHTTPServerHost;
 
     protected static final int FAKE_USER_ID = 1;
     protected static final int FAKE_ROLE_ID = 1;
@@ -81,6 +83,10 @@ public abstract class BaseController {
         return AuthenticationUtils.getApplicationCode();
     }
 
+    protected Integer getUserId() {
+        return AuthenticationUtils.getUserId();
+    }
+
     protected Pageable wrapPageable(Map<String, String> map, Pageable pageable, PAGE_SIZE_LIMIT limit) {
         int pageNumber = 0;
         int pageSize = limit.getSize();
@@ -115,6 +121,40 @@ public abstract class BaseController {
         return PageRequest.of(pageNumber, pageSize, sort);
     }
 
+    protected Pageable wrapPageable(Map<String, String> map, Integer pageSizeI, Integer pageNumberI, Sort sortI, PAGE_SIZE_LIMIT limit) {
+        int pageNumber = 0;
+        int pageSize = limit.getSize();
+        switch (limit) {
+            case JSON:
+                pageSize = 65535;
+                break;
+            case EXCEL:
+                break;
+        }
+        Sort sort = null;
+
+        if (!PAGE_SIZE_LIMIT.JSON.equals(limit) && pageSizeI > limit.getSize()) {
+            throw new ParameterException("Page size (" + pageSizeI + ") over the limit : " + limit.getSize() + ". You can add size=<integer number> in query string to change default value.");
+        }
+        if (null != sortI) {
+            List<Order> orders = StreamSupport.stream(sortI.spliterator(), false)
+                    .map(o -> {
+                        String column = o.getProperty();
+                        String value = map.get(column);
+                        if (null == value) {
+                            throw new ParameterException("Sort column not found : " + column + ", Accepted Columns in [" + map.keySet().stream().collect(Collectors.joining(",")) + "]");
+                        }
+                        Order order = new Order(o.getDirection(), value);
+                        return order;
+                    }).collect(Collectors.toList());
+            sort = Sort.by(orders);
+        }
+        pageNumber = pageNumberI;
+        pageSize = pageSizeI;
+
+        return PageRequest.of(pageNumber, pageSize, sort);
+    }
+
     protected Map<String, String> appendCurrentUserConditionMap(Map<String, String> searchColumnMap) {
         Map<String, String> newSearchColumnMap = new HashMap<String, String>(searchColumnMap);
         newSearchColumnMap.put("user.id", "event.users.id");
@@ -146,5 +186,38 @@ public abstract class BaseController {
         search = "applicationCode eq " + applicationCode + " and " + search;
 
         return search;
+    }
+
+    protected String genUniqueId() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
+
+    protected String[] getFileList(String originalFileName) {
+        String[] stringList = originalFileName.split("\\/");
+        if (stringList.length != 2) {
+            throw new InvalidParameterException();
+        }
+        return stringList;
+    }
+
+    protected Sort getSort(String sortStr) {
+        String[] sortString = null;
+        Sort sort = null;
+        if (sortStr != null && !sortStr.equalsIgnoreCase("")) {
+            sortStr = sortStr.replaceAll("%2C%20", ",").replaceAll("%2C", ",");
+            sortString = sortStr.split(",");
+            if (sortString.length != 2) {
+                throw new ParameterException();
+            }
+            if (sortString[1].equalsIgnoreCase("asc")) {
+                sort = Sort.by(Sort.Direction.ASC, sortString[0]);
+            } else {
+                sort = Sort.by(Sort.Direction.DESC, sortString[0]);
+            }
+        } else {
+            sort = Sort.unsorted();
+        }
+
+        return sort;
     }
 }

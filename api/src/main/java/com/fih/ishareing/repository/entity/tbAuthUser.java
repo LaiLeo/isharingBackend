@@ -35,7 +35,7 @@ public class tbAuthUser implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name="id")
+	@Column(name="id", unique = true, nullable = false)
 	private Integer id;
 	
 	@Column(name="password")
@@ -67,6 +67,14 @@ public class tbAuthUser implements Serializable {
 
 	@Column(name="date_joined")
 	private Timestamp dateJoined;
+
+	@Column(name="resource")
+	private String resource;
+
+//	@OneToOne(cascade = CascadeType.ALL)
+//	@NotFound(action=NotFoundAction.IGNORE)
+//	@JoinColumn(name = "id", referencedColumnName = "userId", nullable = true, updatable = false)
+//	private tbCoreUserAccount TBCoreUserAccount;
 
 	public Integer getId() {
 		return id;
@@ -156,5 +164,20 @@ public class tbAuthUser implements Serializable {
 		this.dateJoined = dateJoined;
 	}
 
+//	public tbCoreUserAccount getTBCoreUserAccount() {
+//		return TBCoreUserAccount;
+//	}
+//
+//	public void setTBCoreUserAccount(tbCoreUserAccount tBCoreUserAccount) {
+//		TBCoreUserAccount = tBCoreUserAccount;
+//	}
 
+
+	public String getResource() {
+		return resource;
+	}
+
+	public void setResource(String resource) {
+		this.resource = resource;
+	}
 }

@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.fih.ishareing'
-version = 'V0.0.0.1'
+version = 'V1.0.2.0'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
@@ -66,11 +66,17 @@ dependencies {
 	implementation "org.apache.commons:commons-collections4:$collections4Version"
 	implementation 'org.apache.httpcomponents:httpclient'
 	implementation group: 'com.alibaba', name: 'fastjson', version: '1.2.75'
+	implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
+	implementation group: 'org.modelmapper', name: 'modelmapper', version: '2.4.4'
 	implementation "com.google.guava:guava:$guavaVersion"
 	implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.26'
+	implementation group: 'org.imgscalr', name: 'imgscalr-lib', version: '4.2'
+	implementation group: 'org.owasp.encoder', name: 'encoder', version: '1.2.3'
+	implementation group: 'org.jsoup', name: 'jsoup', version: '1.14.3'
 
 
-    implementation "io.jsonwebtoken:jjwt-api:$jjwtVersion"
+
+	implementation "io.jsonwebtoken:jjwt-api:$jjwtVersion"
     runtimeOnly "io.jsonwebtoken:jjwt-impl:$jjwtVersion"
     runtimeOnly "io.jsonwebtoken:jjwt-jackson:$jjwtVersion"
 

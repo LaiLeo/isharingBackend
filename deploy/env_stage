@@ -1,0 +1,3 @@
+TAG=latest
+WORKER_DIR=/root/isharing
+DATA_PATH=/root/isharing

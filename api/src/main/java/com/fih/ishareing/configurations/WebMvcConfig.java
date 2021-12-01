@@ -5,6 +5,8 @@ import com.fih.ishareing.common.ApiConstants.FILE_DIR;
 import com.fih.ishareing.configurations.interceptor.ApiSignatureInterceptor;
 import com.fih.ishareing.configurations.interceptor.LoggerInterceptor;
 import com.fih.ishareing.utils.signature.ApiSignature;
+
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,6 +38,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Autowired
     private ApiSignatureInterceptor apiSignatureInterceptor;
 
+	@Bean
+	public ModelMapper modelMapper() {
+	    return new ModelMapper();
+	}
+	
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
 
@@ -60,7 +67,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(final InterceptorRegistry registry) {
          registry.addInterceptor(new LoggerInterceptor()).order(5);
          registry.addInterceptor(apiSignatureInterceptor).addPathPatterns("/api/**",
-                 "/properties/**");
+                 "/properties/**").excludePathPatterns("/api/v1/auth/sign");
     }
 
     @Override

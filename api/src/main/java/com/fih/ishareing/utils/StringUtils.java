@@ -88,17 +88,17 @@ public class StringUtils {
 	}
 
 	public static Boolean stringToBoolean(String s) {
-		if(s.equals("0") || s.equals("No") || s.equals("False"))
+		if(s.equalsIgnoreCase("0") || s.equalsIgnoreCase("no") || s.equalsIgnoreCase("false"))
 		{
 			return false;
 		}
-		else if(s.equals("1") || s.equals("Yes") || s.equals("True"))
+		else if(s.equalsIgnoreCase("1") || s.equalsIgnoreCase("yes") || s.equalsIgnoreCase("true"))
 		{
 			return true;
 		}
 		else
 		{
-			throw new IllegalArgumentException("Invalid string: " + s + " can't be converted into true or false!");
+			return false;
 		}
 	}
 
@@ -115,6 +115,22 @@ public class StringUtils {
 		else
 		{
 			throw new IllegalArgumentException("Invalid string: " + s + " can't be converted into true or false!");
+		}
+	}
+
+	public static Integer BooleanToInteger(Boolean b) {
+		String booleanString = b.toString().toLowerCase();
+		if(booleanString.equals("0") || booleanString.equals("false"))
+		{
+			return 0;
+		}
+		else if(booleanString.equals("1") || booleanString.equals("true"))
+		{
+			return 1;
+		}
+		else
+		{
+			throw new IllegalArgumentException("Invalid string: " + booleanString + " can't be converted into 1 or 0!");
 		}
 	}
 }

@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   api:
-    image: cloudregistry.fihtdc.com/isharing/api:${TAG:-latest}
+    image: isharing/api:${TAG:-latest}
     networks:
       - isharing_network
     container_name: isharing-api
@@ -13,7 +13,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ${DATA_PATH}/api/application-prod.properties:/app/application-prod.properties:ro
       - ${DATA_PATH}/api/logs:/app/logs
-#      - ${DATA_PATH}/service/base-file-server/core-api:/app/temp
+      - ${DATA_PATH}/nginx/resource:/app/resource
     logging:
       driver: "json-file"
       options:
@@ -25,7 +25,7 @@ services:
         condition: on-failure
       resources:
         limits:
-          memory: 1000M
+          memory: 4000M
 
 networks:
   isharing_network:

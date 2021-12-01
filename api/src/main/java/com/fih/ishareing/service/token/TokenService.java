@@ -1,9 +1,7 @@
 package com.fih.ishareing.service.token;
 
 import com.fih.ishareing.service.auth.model.AuthTokenRespVO;
-import com.fih.ishareing.service.auth.model.IeqAccessTokenVO;
 import com.fih.ishareing.service.auth.model.RefreshTokenRespVO;
-
 import org.springframework.security.core.Authentication;
 
 public interface TokenService {

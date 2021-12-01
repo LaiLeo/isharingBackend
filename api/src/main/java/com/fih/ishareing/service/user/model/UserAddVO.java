@@ -9,7 +9,7 @@ public class UserAddVO {
     private String email;
     private String phone;
     private Boolean resetPassword;
-
+    private String twmAccount;
     private String roleCode;
 
     public String getCode() {
@@ -84,4 +84,11 @@ public class UserAddVO {
         this.roleCode = roleCode;
     }
 
+    public String getTwmAccount() {
+        return twmAccount;
+    }
+
+    public void setTwmAccount(String twmAccount) {
+        this.twmAccount = twmAccount;
+    }
 }
